@@ -10,8 +10,9 @@
         main {
             display: flex;
             justify-content: center;
+            flex-direction: column;
             align-items: center;
-            height: 100vh;
+            font-family: sans-serif;
         }
 
         .button-container {
@@ -29,9 +30,10 @@
             height: 100%;
             border-radius: 50%;
             box-shadow: inset 1px 1px 2px 2px #ff4444, 1px 1px 2px 2px #910000;
+            color: #ffffff;
         }
 
-        button {
+        button#panik {
             padding: 8px;
             height: 128px;
             width: 128px;
@@ -42,30 +44,107 @@
             box-shadow: inset 2px 2px 15px 2px #910000;
         }
 
-        button:active {
+        button#panik:active {
             box-shadow: inset 0px 0px 15px 2px #000000;
         }
 
-        button:active .content {
+        button#panik:active .content {
             box-shadow: inset 0px 0px 5px 2px rgb(78, 0, 0), 0px 0px 5px 2px rgb(78, 0, 0);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 64px;
+        }
+
+        dialog {
+            display: none;
+            height: 200px;
+            top: 140px;
+            font-size: 24px;
+        }
+
+        dialog[open] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        dialog .header {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        dialog button#close {
+            border: none;
+            background: none;
+        }
+
+        .register {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .register input {
+            font-size: 18px;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .register-container button#save {
+            display: flex;
+            text-align: center;
+            justify-content: center;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        h1 strong {
+            color: #910000;
+            text-decoration: underline;
         }
     </style>
 </head>
 
-<body>
-
-    <header>
-
-    </header>
-
+<body onload="onLoad()">
     <main>
-        <div class="button-container">
-            <button onclick="onPanik()">
+        <div class="header">
+            <img src="https://raw.githubusercontent.com/breno-cantuaria/alert-valoraseg/master/images/dpanik.png" alt=""
+                height="50px">
+            <h1>Don't <strong>PANIK</strong></h1>
+        </div>
+
+
+        <div class="register-container" id="register">
+            <div class="register">
+                <label for="name">Nome completo</label>
+                <input type="text" id="name">
+            </div>
+
+            <button id="save" onclick="saveUser()">salvar</button>
+        </div>
+
+        <div class="button-container" id="panik-button">
+            <button onclick="onPanik()" id="panik">
                 <div class="content">
-                    PANIK
+                    
                 </div>
             </button>
         </div>
+
+        <dialog id="dialog">
+            <div class="header">
+                <button id="close" onclick="closeDialog()">x</button>
+            </div>
+             <strong>DONT-PANIK:</strong> já notificamos a ajuda
+        </dialog>
+
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -74,9 +153,12 @@
 
         function onSuccess(position) {
             const { latitude, longitude } = position.coords
-            const message = `user in \{latitude: ${latitude}, longitude: ${longitude}\}`
+            const username = localStorage.getItem('user-name', 'user')
+            const message = `${username} in \{latitude: ${latitude}, longitude: ${longitude}\}`
             socket.emit('panik', message)
-            alert('DONT-PANIK: já notificamos a ajuda')
+
+            const dialog = document.getElementById('dialog')
+            dialog.setAttribute('open', true)
         }
 
         function onError() {
@@ -86,6 +168,33 @@
 
         function onPanik() {
             navigator.geolocation.getCurrentPosition(onSuccess, onError)
+        }
+
+        function closeDialog() {
+            const dialog = document.getElementById('dialog')
+            dialog.removeAttribute('open')
+        }
+
+        function saveUser() {
+            const fullName = document.getElementById('name')
+            const panikButton = document.getElementById('panik-button')
+            
+            localStorage.setItem('user-name', fullName.value)
+            document.getElementById('register').classList.add('hide')
+            panikButton.classList.remove('hide')
+        }
+
+        function onLoad() {
+            const username = localStorage.getItem('user-name')
+            const panikButton = document.getElementById('panik-button')
+
+            console.log(panikButton)
+        
+            if(!username) {
+                panikButton.classList.add('hide')
+            } else {
+                document.getElementById('register').classList.add('hide')
+            }
         }
     </script>
 </body>
